@@ -60,11 +60,13 @@ param (
 # Function to check if Tfenv is installed
 function Check-TfenvExists {
     try {
-        $tfenvPath = Get-Command tfenv -ErrorAction Continue
+        $tfenvPath = Get-Command tfenv -ErrorAction Stop
         Write-Host "Success: Tfenv found at: $($tfenvPath.Source)" -ForegroundColor Green
+        return $true
     }
     catch {
-        Write-Warning "Warning: Tfenv is not installed or not in PATH. Checking if terraform exists locally without tfenv " -ForegroundColor Yellow
+        Write-Warning "Warning: Tfenv is not installed or not in PATH. Skipping version checking."
+        return $false
     }
 }
 
@@ -118,10 +120,8 @@ function Convert-ToBoolean($value) {
     }
 }
 
-if (Check-TfenvExists) {
-    Write-Warning "Warning: TFenv is not installed, so skipping version checking"
-}
-else {
+$tfenvExists = Check-TfenvExists
+if ($tfenvExists) {
     Ensure-TerraformVersion -Version $TerraformVersion
 }
 
@@ -259,8 +259,7 @@ Run-TerraformPlanDestroy
 Run-TerraformApply
 Run-TerraformDestroy
 
-
-if ($DeletePlanFiles -eq $true) {
+if ($DeletePlanFiles -eq $true -and (Test-Path tfplan.plan)) {
     try {
         Write-Debug "Removing tfplan.plan"
         Remove-Item -Path tfplan.plan -Force -ErrorAction Stop
