@@ -36,10 +36,6 @@
     .\Run-Terraform.ps1 -RunTerraformInit "true" -RunTerraformPlan "true" -RunTerraformApply "false" -RunTerraformDestroy "false" -DebugMode "false" -DeletePlanFiles "true" -TerraformVersion "latest"
     Runs Terraform init and plan with the latest version of Terraform, without debug mode, and deletes plan files after execution.
 
-.EXAMPLE
-    .\Run-Terraform.ps1 -Help
-    Displays the help information for this script.
-
 .NOTES
     Ensure Terraform or 'tfenv' is installed and accessible in the system path. The script is intended for use in a PowerShell environment. It's designed for flexibility and includes error handling to ensure smooth execution.
 
