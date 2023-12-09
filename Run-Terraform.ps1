@@ -115,7 +115,7 @@ function Convert-ToBoolean($value) {
         return $false
     }
     else {
-        Write-Error "Errlr: Invalid value - $value. Exiting."
+        Write-Error "Error: Invalid value - $value. Exiting."
         exit 1
     }
 }
@@ -200,7 +200,12 @@ function Run-TerraformPlan {
         try {
             Write-Host "Info: Running Terraform Plan in $WorkingDirectory" -ForegroundColor Green
             terraform plan -out tfplan.plan
-            terraform show -json tfplan.plan | Tee-Object -FilePath tfplan.json | Out-Null
+            if (Test-Path tfplan.plan) {
+                terraform show -json tfplan.plan | Tee-Object -FilePath tfplan.json | Out-Null
+            }
+            else {
+                Write-Error "Error: Terraform plan file not created"
+            }
         }
         catch {
             Write-Error "Error: Terraform Plan failed"
@@ -215,7 +220,12 @@ function Run-TerraformPlanDestroy {
         try {
             Write-Host "Info: Running Terraform Plan Destroy in $WorkingDirectory" -ForegroundColor Yellow
             terraform plan -destroy -out tfplan.plan
-            terraform show -json tfplan.plan | Tee-Object -FilePath tfplan.json | Out-Null
+            if (Test-Path tfplan.plan) {
+                terraform show -json tfplan.plan | Tee-Object -FilePath tfplan.json | Out-Null
+            }
+            else {
+                Write-Error "Error: Terraform plan file not created"
+            }
         }
         catch {
             Write-Error "Error: Terraform Plan Destroy failed"
@@ -229,7 +239,12 @@ function Run-TerraformApply {
     if ($RunTerraformApply -eq $true) {
         try {
             Write-Host "Info: Running Terraform Apply in $WorkingDirectory" -ForegroundColor Yellow
-            terraform apply -auto-approve tfplan.plan
+            if (Test-Path tfplan.plan) {
+                terraform apply -auto-approve tfplan.plan
+            }
+            else {
+                Write-Error "Error: Terraform plan file not present for terraform apply"
+            }
         }
         catch {
             Write-Error "Error: Terraform Apply failed"
@@ -243,7 +258,12 @@ function Run-TerraformDestroy {
     if ($RunTerraformDestroy -eq $true) {
         try {
             Write-Host "Info: Running Terraform Destroy in $WorkingDirectory" -ForegroundColor Yellow
-            terraform apply -auto-approve tfplan.plan
+            if (Test-Path tfplan.plan) {
+                terraform apply -auto-approve tfplan.plan
+            }
+            else {
+                Write-Error "Error: Terraform plan file not present for terraform destroy"
+            }
         }
         catch {
             Write-Error "Error: Terraform Destroy failed"
@@ -259,16 +279,16 @@ Run-TerraformPlanDestroy
 Run-TerraformApply
 Run-TerraformDestroy
 
-if ($DeletePlanFiles -eq $true -and (Test-Path tfplan.plan)) {
-    try {
-        Write-Debug "Removing tfplan.plan"
-        Remove-Item -Path tfplan.plan -Force -ErrorAction Stop
-        Write-Debug "Removing tfplan.json"
-        Remove-Item -Path tfplan.json -Force -ErrorAction Stop
-        Write-Debug "Deleted both tfplan.plan and tfplan.json"
+if ($DeletePlanFiles -eq $true) {
+    $planFile = "tfplan.plan"
+    if (Test-Path $planFile) {
+        Remove-Item -Path $planFile -Force -ErrorAction Stop
+        Write-Debug "Deleted $planFile"
     }
-    catch {
-        Write-Error "An error occurred: $( $_.Exception.Message )"
+    $planJson = "tfplan.json"
+    if (Test-Path $planJson) {
+        Remove-Item -Path $planJson -Force -ErrorAction Stop
+        Write-Debug "Deleted $planJson"
     }
 }
 
