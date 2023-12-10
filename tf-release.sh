@@ -39,24 +39,7 @@ function tf-rel() {
     }
 
     local curdir=$(basename "$(pwd)")
-    local build_file=""
-    if [ -f build.tf ]; then
-        build_file="build.tf"
-        print_success "${build_file} found"
-    elif [ -f main.tf ]; then
-        build_file="main.tf"
-        print_success "${build_file} found"
-    fi
-    if [ "$build_file" != "" ]; then
-        echo "" > README.md
-        echo '```hcl' >> README.md
-        cat "$build_file" >> README.md
-        echo '```' >> README.md
-    else
-        print_alert "Not a build directory, no build.tf or main.tf found"
-    fi
     terraform fmt -recursive
-    terraform-docs markdown . >> README.md
     stfi
     stfo
     git add --all

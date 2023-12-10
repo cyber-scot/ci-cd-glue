@@ -18,20 +18,20 @@ run-script:
   script:
     - >
       pwsh -Command ".\Run-Terraform.ps1
-      -WorkingDirectory ${WORKING_DIRECTORY}
-      -RunTerraformInit ${RUN_TERRAFORM_INIT}
-      -RunTerrformPlan ${RUN_TERRAFORM_PLAN}
-      -RunTerraformPlanDestroy ${RUN_TERRAFORM_PLAN_DESTROY}
-      -RunTerraformApply ${RUN_TERRAFORM_APPLY}
-      -RunTerraformDestroy ${RUN_TERRAFORM_DESTROY}
-      -DebugMode ${ENABLE_DEBUG_MODE}
-      -DeletePlanFiles ${DELETE_PLAN_FILES}
-      -TerraformVersion ${TERRAFORM_VERSION}
-      -BackendStorageSubscriptionId "${SpokeSubId}"
-      -BackendStorageResourceGroupName "${SpokeSaRgName}"
-      -BackendStorageAccountName "${SpokeSaName}"
-      -BackendStorageAccountBlobContainerName "${SpokeSaBlobContainerName}"
-      -TerraformStateName ${TERRAFORM_STATE_NAME}"
+      -WorkingDirectory '${WORKING_DIRECTORY}'
+      -RunTerraformInit '${RUN_TERRAFORM_INIT}'
+      -RunTerraformPlan '${RUN_TERRAFORM_PLAN}'
+      -RunTerraformPlanDestroy '${RUN_TERRAFORM_PLAN_DESTROY}'
+      -RunTerraformApply '${RUN_TERRAFORM_APPLY}'
+      -RunTerraformDestroy '${RUN_TERRAFORM_DESTROY}'
+      -DebugMode '${ENABLE_DEBUG_MODE}'
+      -DeletePlanFiles '${DELETE_PLAN_FILES}'
+      -TerraformVersion '${TERRAFORM_VERSION}'
+      -BackendStorageSubscriptionId '${SpokeSubId}'
+      -BackendStorageResourceGroupName '${SpokeSaRgName}'
+      -BackendStorageAccountName '${SpokeSaName}'
+      -BackendStorageAccountBlobContainerName '${SpokeSaBlobContainerName}'
+      -TerraformStateName '${TERRAFORM_STATE_NAME}'"
   only:
     - triggers
     - web
