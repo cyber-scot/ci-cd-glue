@@ -50,7 +50,23 @@ param (
     [string]$WorkingDirectory = (Get-Location).Path,
     [string]$DebugMode = "false",
     [string]$DeletePlanFiles = "true",
-    [string]$TerraformVersion = "latest"
+    [string]$TerraformVersion = "latest",
+    [string]$BackendStorageUsesEntraId = "true",
+
+    [Parameter(Mandatory = $true)]
+    [string]$TerraformStateName,
+
+    [Parameter(Mandatory = $true)]
+    [string]$BackendStorageSubscriptionId,
+
+    [Parameter(Mandatory = $true)]
+    [string]$BackendStorageResourceGroupName,
+
+    [Parameter(Mandatory = $true)]
+    [string]$BackendStorageAccountName,
+
+    [Parameter(Mandatory = $true)]
+    [string]$BackendStorageAccountBlobContainerName
 )
 
 # Function to check if Tfenv is installed
@@ -129,8 +145,10 @@ $RunTerraformPlan = Convert-ToBoolean $RunTerraformPlan
 $RunTerraformPlanDestroy = Convert-ToBoolean $RunTerraformPlanDestroy
 $RunTerraformApply = Convert-ToBoolean $RunTerraformApply
 $RunTerraformDestroy = Convert-ToBoolean $RunTerraformDestroy
+$BackendStorageUsesAzureAD = Convert-ToBoolean $BackendStorageUsesAzureAD
 $DebugMode = Convert-ToBoolean $DebugMode
 $DeletePlanFiles = Convert-ToBoolean $DeletePlanFiles
+$BackendStorageUsesEntraId = Convert-ToBoolean $BackendStorageUsesEntraId
 
 # Enable debug mode if DebugMode is set to $true
 if ($DebugMode) {
@@ -143,6 +161,7 @@ Write-Debug "RunTerraformPlan: $RunTerraformPlan"
 Write-Debug "RunTerraformPlanDestroy: $RunTerraformPlanDestroy"
 Write-Debug "RunTerraformApply: $RunTerraformApply"
 Write-Debug "RunTerraformDestroy: $RunTerraformDestroy"
+Write-Debug "BackendStorageUsesEntraId = $BackendStorageUsesEntraId"
 Write-Debug "DebugMode: $DebugMode"
 Write-Debug "DeletePlanFiles: $DeletePlanFiles"
 
@@ -176,12 +195,24 @@ catch {
     exit 1
 }
 
-# Function to execute Terraform init
 function Run-TerraformInit {
     if ($RunTerraformInit -eq $true) {
         try {
             Write-Host "Info: Running Terraform init in $WorkingDirectory" -ForegroundColor Green
-            terraform init
+
+            # Construct the backend config parameters
+            $backendConfigParams = @(
+                "-backend-config=`"subscription_id=$BackendStorageSubscriptionId`"",
+                "-backend-config=`"storage_uses_azuread=$BackendStorageUsesAzureAD`"",
+                "-backend-config=`"resource_group_name=$BackendStorageResourceGroupName`"",
+                "-backend-config=`"storage_account_name=$BackendStorageAccountName`"",
+                "-backend-config=`"container_name=$BackendStorageAccountBlobContainerName`"",
+                "-backend-config=`"key=$TerraformStateName`""
+            )
+
+            # Run terraform init with the constructed parameters
+            terraform init @backendConfigParams
+
         }
         catch {
             Write-Error "Error: Terraform init failed" -ForegroundColor Red

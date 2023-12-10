@@ -40,6 +40,19 @@ on:
         type: string
         description: 'What version should tfenv attempt to use'
         default: latest
+      backend_storage_subscription_id:
+        type: string
+        description: 'Subscription ID for the backend storage'
+        default: '' # Set a default value or leave empty
+      backend_storage_uses_entra_id:
+        type: boolean
+        description: 'Specify if backend storage uses Azure AD/Microsoft Entra for ID'
+        default: true
+      terraform_state_name:
+        type: string
+        description: 'Name of the Terraform state file'
+        default: 'lbdo-dev-gh.terraform.tfstate'
+
 
 jobs:
   run-script:
@@ -57,4 +70,25 @@ jobs:
         id: run-script
         shell: pwsh
         run: |
-          .\Run-Terraform.ps1 -WorkingDirectory ${{ inputs.working_directory }} -RunTerraformInit ${{ inputs.run_terraform_init }} -RunTerraformPlan ${{ inputs.run_terraform_plan }} -RunTerraformPlanDestroy ${{ inputs.run_terraform_plan_destroy }} -RunTerraformApply ${{ inputs.run_terraform_apply }} -RunTerraformDestroy ${{ inputs.run_terraform_destroy }} -DebugMode ${{ inputs.enable_debug_mode }} -DeletePlanFiles ${{ inputs.delete_plan_files }} -TerraformVersion ${{ inputs.terraform_version }}
+          .\Run-Terraform.ps1 `
+            -WorkingDirectory ${{ inputs.working_directory }} `
+            -RunTerraformInit ${{ inputs.run_terraform_init }} `
+            -RunTerraformPlan ${{ inputs.run_terraform_plan }} `
+            -RunTerraformPlanDestroy ${{ inputs.run_terraform_plan_destroy }} `
+            -RunTerraformApply ${{ inputs.run_terraform_apply }} `
+            -RunTerraformDestroy ${{ inputs.run_terraform_destroy }} `
+            -DebugMode ${{ inputs.enable_debug_mode }} `
+            -DeletePlanFiles ${{ inputs.delete_plan_files }} `
+            -TerraformVersion ${{ inputs.terraform_version }} `
+            -BackendStorageSubscriptionId ${{ secrets.SpokeSubId }} `
+            -BackendStorageUsesAzureAD ${{ inputs.backend_storage_uses_entra_id }} `
+            -BackendStorageResourceGroupName ${{ secrets.SpokeSaRgName }} `
+            -BackendStorageAccountName ${{ secrets.SpokeSaName }} `
+            -BackendStorageAccountBlobContainerName ${{ secrets.SpokeSaBlobContainerName }} `
+            -TerraformStateName ${{ inputs.terraform_state_name }}
+        env:
+          ARM_CLIENT_ID: ${{ secrets.SpokeSvpClientId }}
+          ARM_CLIENT_SECRET: ${{ secrets.SpokeSvpClientSecret }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.SpokeSubId }}
+          ARM_TENANT_ID: ${{ secrets.SpokeTenantId }}
+          ARM_USE_AZUREAD: true
