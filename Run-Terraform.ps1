@@ -51,7 +51,6 @@ param (
     [string]$DebugMode = "false",
     [string]$DeletePlanFiles = "true",
     [string]$TerraformVersion = "latest",
-    [string]$BackendStorageUsesEntraId = "true",
 
     [Parameter(Mandatory = $true)]
     [string]$TerraformStateName,
@@ -145,10 +144,8 @@ $RunTerraformPlan = Convert-ToBoolean $RunTerraformPlan
 $RunTerraformPlanDestroy = Convert-ToBoolean $RunTerraformPlanDestroy
 $RunTerraformApply = Convert-ToBoolean $RunTerraformApply
 $RunTerraformDestroy = Convert-ToBoolean $RunTerraformDestroy
-$BackendStorageUsesAzureAD = Convert-ToBoolean $BackendStorageUsesAzureAD
 $DebugMode = Convert-ToBoolean $DebugMode
 $DeletePlanFiles = Convert-ToBoolean $DeletePlanFiles
-$BackendStorageUsesEntraId = Convert-ToBoolean $BackendStorageUsesEntraId
 
 # Enable debug mode if DebugMode is set to $true
 if ($DebugMode) {
@@ -161,7 +158,6 @@ Write-Debug "RunTerraformPlan: $RunTerraformPlan"
 Write-Debug "RunTerraformPlanDestroy: $RunTerraformPlanDestroy"
 Write-Debug "RunTerraformApply: $RunTerraformApply"
 Write-Debug "RunTerraformDestroy: $RunTerraformDestroy"
-Write-Debug "BackendStorageUsesEntraId = $BackendStorageUsesEntraId"
 Write-Debug "DebugMode: $DebugMode"
 Write-Debug "DeletePlanFiles: $DeletePlanFiles"
 
@@ -202,21 +198,20 @@ function Run-TerraformInit {
 
             # Construct the backend config parameters
             $backendConfigParams = @(
-                "-backend-config=`"subscription_id=$BackendStorageSubscriptionId`"",
-                "-backend-config=`"storage_uses_azuread=$BackendStorageUsesAzureAD`"",
-                "-backend-config=`"resource_group_name=$BackendStorageResourceGroupName`"",
-                "-backend-config=`"storage_account_name=$BackendStorageAccountName`"",
-                "-backend-config=`"container_name=$BackendStorageAccountBlobContainerName`"",
-                "-backend-config=`"key=$TerraformStateName`""
+                "-backend-config=subscription_id=$BackendStorageSubscriptionId",
+                "-backend-config=resource_group_name=$BackendStorageResourceGroupName",
+                "-backend-config=storage_account_name=$BackendStorageAccountName",
+                "-backend-config=container_name=$BackendStorageAccountBlobContainerName",
+                "-backend-config=key=$TerraformStateName"
             )
 
             # Run terraform init with the constructed parameters
-            terraform init @backendConfigParams
-
+            terraform init @backendConfigParams | Out-Host
+            return $true
         }
         catch {
             Write-Error "Error: Terraform init failed" -ForegroundColor Red
-            exit 1
+            return $false
         }
     }
 }
@@ -224,21 +219,18 @@ function Run-TerraformInit {
 # Function to execute Terraform plan
 function Run-TerraformPlan {
     if ($RunTerraformPlan -eq $true) {
-        try {
-            Write-Host "Info: Running Terraform Plan in $WorkingDirectory" -ForegroundColor Green
-            terraform plan -out tfplan.plan
-            if (Test-Path tfplan.plan) {
-                terraform show -json tfplan.plan | Tee-Object -FilePath tfplan.json | Out-Null
-            }
-            else {
-                Write-Error "Error: Terraform plan file not created"
-            }
+        Write-Host "Info: Running Terraform Plan in $WorkingDirectory" -ForegroundColor Green
+        terraform plan -out tfplan.plan | Out-Host
+        if (Test-Path tfplan.plan) {
+            terraform show -json tfplan.plan | Tee-Object -FilePath tfplan.json | Out-Null
+            return $true
         }
-        catch {
-            Write-Error "Error: Terraform Plan failed"
-            exit 1
+        else {
+            Write-Host "Error: Terraform plan file not created"
+            return $false
         }
     }
+    return $false
 }
 
 # Function to execute Terraform plan for destroy
@@ -249,16 +241,19 @@ function Run-TerraformPlanDestroy {
             terraform plan -destroy -out tfplan.plan
             if (Test-Path tfplan.plan) {
                 terraform show -json tfplan.plan | Tee-Object -FilePath tfplan.json | Out-Null
+                return $true
             }
             else {
                 Write-Error "Error: Terraform plan file not created"
+                return $false
             }
         }
         catch {
             Write-Error "Error: Terraform Plan Destroy failed"
-            exit 1
+            return $false
         }
     }
+    return $false
 }
 
 # Function to execute Terraform apply
@@ -267,17 +262,20 @@ function Run-TerraformApply {
         try {
             Write-Host "Info: Running Terraform Apply in $WorkingDirectory" -ForegroundColor Yellow
             if (Test-Path tfplan.plan) {
-                terraform apply -auto-approve tfplan.plan
+                terraform apply -auto-approve tfplan.plan | Out-Host
+                return $true
             }
             else {
                 Write-Error "Error: Terraform plan file not present for terraform apply"
+                return $false
             }
         }
         catch {
             Write-Error "Error: Terraform Apply failed"
-            exit 1
+            return $false
         }
     }
+    return $false
 }
 
 # Function to execute Terraform destroy
@@ -286,25 +284,35 @@ function Run-TerraformDestroy {
         try {
             Write-Host "Info: Running Terraform Destroy in $WorkingDirectory" -ForegroundColor Yellow
             if (Test-Path tfplan.plan) {
-                terraform apply -auto-approve tfplan.plan
+                terraform apply -auto-approve tfplan.plan | Out-Host
+                return $true
             }
             else {
                 Write-Error "Error: Terraform plan file not present for terraform destroy"
+                return $false
             }
         }
         catch {
             Write-Error "Error: Terraform Destroy failed"
-            exit 1
+            return $false
         }
     }
+    return $false
 }
 
-# Execution
-Run-TerraformInit
-Run-TerraformPlan
-Run-TerraformPlanDestroy
-Run-TerraformApply
-Run-TerraformDestroy
+# Execution flow
+if (Run-TerraformInit) {
+    $planSuccess = Run-TerraformPlan
+    $planDestroySuccess = Run-TerraformPlanDestroy
+
+    if ($planSuccess -and $RunTerraformApply -eq $true) {
+        Run-TerraformApply
+    }
+
+    if ($planDestroySuccess -and $RunTerraformDestroy -eq $true) {
+        Run-TerraformDestroy
+    }
+}
 
 if ($DeletePlanFiles -eq $true) {
     $planFile = "tfplan.plan"

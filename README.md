@@ -15,6 +15,73 @@ Environment variables are used to pass configuration options and settings to the
 
 Run this PowerShell script to set the required environment variables.
 
+You can run this script in a limited configuration, for example:
+
+```powershell
+# PowerShell script to set user-level environment variables with predefined values for Linux
+# Define a hashtable with key-value pairs for environment variables
+$predefinedVariableValues = @{
+    "BACKEND_STORAGE_SUBSCRIPTION_ID" = "example_subscription_id"
+    "BACKEND_STORAGE_USES_AZURE_AD" = "true"
+    "BACKEND_STORAGE_RESOURCE_GROUP_NAME" = "example_resource_group_name"
+    "BACKEND_STORAGE_ACCOUNT_NAME" = "example_account_name"
+    "BACKEND_STORAGE_ACCOUNT_BLOB_CONTAINER_NAME" = "example_blob_container_name"
+    "ARM_CLIENT_ID" = "example"
+    "ARM_CLIENT_SECRET" = "example"
+    "ARM_SUBSCRIPTION_ID" = "example"
+    "ARM_TENANT_ID" = "example"
+    "ARM_USE_AZUREAD" = "example"
+}
+
+# Set each predefined variable
+foreach ($varName in $predefinedVariableValues.Keys) {
+    $value = $predefinedVariableValues[$varName]
+
+    if ($isLinux) {
+        # Ensure the PowerShell profile directory exists
+        $profileDirectory = [System.IO.Path]::GetDirectoryName($PROFILE)
+        if (-not (Test-Path $profileDirectory)) {
+            New-Item -ItemType Directory -Path $profileDirectory -Force
+        }
+
+        # Ensure the PowerShell profile file exists
+        if (-not (Test-Path $PROFILE)) {
+            New-Item -ItemType File -Path $PROFILE -Force
+        }
+
+        # Append to PowerShell profile and set in current session
+        $exportCommand = "`n`$Env:$varName = `"$value`""
+        Add-Content -Path $PROFILE -Value $exportCommand
+        Set-Variable -Name $varName -Value $value -Scope Global
+    }
+    elseif ($IsMacOS)
+    {
+        # Ensure the PowerShell profile directory exists
+        $profileDirectory = [System.IO.Path]::GetDirectoryName($PROFILE)
+        if (-not (Test-Path $profileDirectory)) {
+            New-Item -ItemType Directory -Path $profileDirectory -Force
+        }
+
+        # Ensure the PowerShell profile file exists
+        if (-not (Test-Path $PROFILE)) {
+            New-Item -ItemType File -Path $PROFILE -Force
+        }
+
+        # Append to PowerShell profile and set in current session
+        $exportCommand = "`n`$Env:$varName = `"$value`""
+        Add-Content -Path $PROFILE -Value $exportCommand
+        Set-Variable -Name $varName -Value $value -Scope Global
+    }
+    else {
+        # On other systems, set user environment variable
+        [System.Environment]::SetEnvironmentVariable($varName, $value, [System.EnvironmentVariableTarget]::User)
+    }
+}
+
+Write-Host "User-level environment variables have been set."
+Write-Host "Please close your powershell window and reopen to refresh environment" -ForegroundColor Yellow
+
+```
 ## Running the Script
 
 To run the Run-Terraform.ps1 script with the environment variables, use the following command in PowerShell:
@@ -44,12 +111,24 @@ Alternatively, you can just hard code the values you want:
 .\Run-Terraform.ps1 `
   -RunTerraformInit true `
   -RunTerraformPlan true `
-  -RunTerraformApply true `
+  -BackendStorageSubscriptionId "foo" `
+  -BackendStorageResourceGroupName "bar" `
+  -BackendStorageAccountName "example" `
+  -BackendStorageAccountBlobContainerName "icecream" `
+  -TerraformStateName "example.terraform.tfstate"
+```
+
+Or a mixture
+
+```powershell
+.\Run-Terraform.ps1 `
+  -RunTerraformInit true `
+  -RunTerraformPlan true `
   -BackendStorageSubscriptionId $Env:BACKEND_STORAGE_SUBSCRIPTION_ID `
   -BackendStorageResourceGroupName $Env:BACKEND_STORAGE_RESOURCE_GROUP_NAME `
   -BackendStorageAccountName $Env:BACKEND_STORAGE_ACCOUNT_NAME `
   -BackendStorageAccountBlobContainerName $Env:BACKEND_STORAGE_ACCOUNT_BLOB_CONTAINER_NAME `
-  -TerraformStateName "example.terraform.tfstate"
+  -TerraformStateName "cscot-dev.terraform.tfstate"
 ```
 
 ### Post-Execution
