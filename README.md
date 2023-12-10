@@ -1,3 +1,63 @@
+# Terraform Script Execution Guide
+
+This guide provides instructions on setting up environment variables and running the `Run-Terraform.ps1` PowerShell script for Terraform operations.
+
+## Setting Environment Variables
+
+Environment variables are used to pass configuration options and settings to the PowerShell script. These variables can be set both locally (for the current PowerShell session) and system-wide.
+
+### Prerequisites
+
+- Administrative privileges are required to set system environment variables.
+- PowerShell must be run as an administrator to execute these scripts.
+
+### Populate Environment Variables for local env - Populate-LocalVars.ps1
+
+Run this PowerShell script to set the required environment variables.
+
+## Running the Script
+
+To run the Run-Terraform.ps1 script with the environment variables, use the following command in PowerShell:
+
+```powershell
+.\Run-Terraform.ps1 `
+  -WorkingDirectory $Env:WORKING_DIRECTORY `
+  -RunTerraformInit $Env:RUN_TERRAFORM_INIT `
+  -RunTerraformPlan $Env:RUN_TERRAFORM_PLAN `
+  -RunTerraformPlanDestroy $Env:RUN_TERRAFORM_PLAN_DESTROY `
+  -RunTerraformApply $Env:RUN_TERRAFORM_APPLY `
+  -RunTerraformDestroy $Env:RUN_TERRAFORM_DESTROY `
+  -DebugMode $Env:ENABLE_DEBUG_MODE `
+  -DeletePlanFiles $Env:DELETE_PLAN_FILES `
+  -TerraformVersion $Env:TERRAFORM_VERSION `
+  -BackendStorageSubscriptionId $Env:BACKEND_STORAGE_SUBSCRIPTION_ID `
+  -BackendStorageUsesAzureAD $Env:BACKEND_STORAGE_USES_AZURE_AD `
+  -BackendStorageResourceGroupName $Env:BACKEND_STORAGE_RESOURCE_GROUP_NAME `
+  -BackendStorageAccountName $Env:BACKEND_STORAGE_ACCOUNT_NAME `
+  -BackendStorageAccountBlobContainerName $Env:BACKEND_STORAGE_ACCOUNT_BLOB_CONTAINER_NAME `
+  -TerraformStateName $Env:TERRAFORM_STATE_NAME
+```
+
+Alternatively, you can just hard code the values you want:
+
+```powershell
+.\Run-Terraform.ps1 `
+  -RunTerraformInit true `
+  -RunTerraformPlan true `
+  -RunTerraformApply true `
+  -BackendStorageSubscriptionId $Env:BACKEND_STORAGE_SUBSCRIPTION_ID `
+  -BackendStorageResourceGroupName $Env:BACKEND_STORAGE_RESOURCE_GROUP_NAME `
+  -BackendStorageAccountName $Env:BACKEND_STORAGE_ACCOUNT_NAME `
+  -BackendStorageAccountBlobContainerName $Env:BACKEND_STORAGE_ACCOUNT_BLOB_CONTAINER_NAME `
+  -TerraformStateName "example.terraform.tfstate"
+```
+
+### Post-Execution
+
+- After running the script, the Terraform operations as specified by the parameters will be executed.
+- Remember that changes to system environment variables might require a system restart to be recognized by all applications.
+
+
 
 ```hcl
 module "rg" {
