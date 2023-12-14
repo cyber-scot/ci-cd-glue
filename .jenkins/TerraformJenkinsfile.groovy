@@ -14,7 +14,7 @@ pipeline {
         string(name: 'WorkingDirectory', defaultValue: "(Get-Location).Path", description: 'The working directory')
         string(name: 'TerraformVersion', defaultValue: 'latest', description: 'Terraform version')
         booleanParam(name: 'DebugMode', defaultValue: true, description: 'Enable DebugMode')
-        // Add more parameters as needed
+        booleanParam(name: 'DeletePlanFiles', defaultValue: true, description: 'Delete Terraform Plan Files')
     }
 
     environment {
@@ -41,6 +41,7 @@ pipeline {
                             -RunTerraformPlanDestroy $params.TfPlanDestroy `
                             -RunTerraformApply $params.TfApply `
                             -RunTerraformDestroy $params.TfDestroy `
+                            -DeletePlanFiles $params.DeletePlanFiles `
                             -DebugMode $params.DebugMode `
                             -DeletePlanFiles $params.DeletePlanFiles `
                             -TerraformVersion $params.TerraformVersion `
