@@ -19,6 +19,8 @@ pipeline {
 
     environment {
         TFENV_AUTO_INSTALL = 'false'
+        ARM_CLIENT_ID = credentials('SpokeClientId')
+        ARM_CLIENT_SECRET = credentials('SpokeClientSecret')
         ARM_TENANT_ID = credentials('SpokeTenantId')
         ARM_SUBSCRIPTION_ID = credentials('SpokeSubId')
         BACKEND_STORAGE_SUBSCRIPTION_ID = credentials('SpokeSubId')
@@ -31,7 +33,6 @@ pipeline {
         stage('Run Script') {
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: SvpPrd, usernameVariable: 'ARM_CLIENT_ID', passwordVariable: 'ARM_CLIENT_SECRET')]) {
                         pwsh """
                             pwsh -File Run-Terraform.ps1 `
                             -WorkingDirectory $params.WorkingDirectory `
@@ -49,7 +50,6 @@ pipeline {
                             -BackendStorageAccountBlobContainerName $env:BACKEND_STORAGE_ACCOUNT_BLOB_CONTAINER_NAME `
                             -TerraformStateName $params.TerraformStateName
                         """
-                    }
                 }
             }
         }
