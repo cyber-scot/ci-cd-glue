@@ -11,7 +11,7 @@ pipeline {
         booleanParam(name: 'TfApply', defaultValue: false, description: 'Terraform Apply')
         booleanParam(name: 'TfPlanDestroy', defaultValue: false, description: 'Terraform Plan Destroy')
         booleanParam(name: 'TfDestroy', defaultValue: false, description: 'Terraform Destroy')
-        string(name: 'WorkingDirectory', defaultValue: "$WORKSPACE", description: 'The working directory')
+        string(name: 'WorkingDirectory', defaultValue: "(Get-Location).Path", description: 'The working directory')
         string(name: 'TerraformVersion', defaultValue: 'latest', description: 'Terraform version')
         booleanParam(name: 'DebugMode', defaultValue: true, description: 'Enable DebugMode')
         // Add more parameters as needed
