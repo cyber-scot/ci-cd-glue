@@ -13,8 +13,6 @@ pipeline {
         booleanParam(name: 'TfDestroy', defaultValue: false, description: 'Terraform Destroy')
         string(name: 'WorkingDirectory', defaultValue: "(Get-Location).Path", description: 'The working directory')
         string(name: 'TerraformVersion', defaultValue: 'latest', description: 'Terraform version')
-        booleanParam(name: 'DebugMode', defaultValue: true, description: 'Enable DebugMode')
-        booleanParam(name: 'DeletePlanFiles', defaultValue: true, description: 'Delete Terraform Plan Files')
     }
 
     environment {
@@ -41,8 +39,6 @@ pipeline {
                             -RunTerraformPlanDestroy $params.TfPlanDestroy `
                             -RunTerraformApply $params.TfApply `
                             -RunTerraformDestroy $params.TfDestroy `
-                            -DebugMode $params.DebugMode `
-                            -DeletePlanFiles $params.DeletePlanFiles `  // Ensure this line appears only once
                             -TerraformVersion $params.TerraformVersion `
                             -BackendStorageSubscriptionId $env:BACKEND_STORAGE_SUBSCRIPTION_ID `
                             -BackendStorageResourceGroupName $env:BACKEND_STORAGE_RESOURCE_GROUP_NAME `
