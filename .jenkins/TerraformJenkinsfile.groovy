@@ -31,7 +31,7 @@ pipeline {
         stage('Run Script') {
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: SvpDev, usernameVariable: 'ARM_CLIENT_ID', passwordVariable: 'ARM_CLIENT_SECRET')]) {
+                    withCredentials([usernamePassword(credentialsId: SvpPrd, usernameVariable: 'ARM_CLIENT_ID', passwordVariable: 'ARM_CLIENT_SECRET')]) {
                         pwsh """
                             pwsh -File Run-Terraform.ps1 `
                             -WorkingDirectory $params.WorkingDirectory `
