@@ -41,16 +41,15 @@ pipeline {
                             -RunTerraformPlanDestroy $params.TfPlanDestroy `
                             -RunTerraformApply $params.TfApply `
                             -RunTerraformDestroy $params.TfDestroy `
-                            -DeletePlanFiles $params.DeletePlanFiles `
                             -DebugMode $params.DebugMode `
-                            -DeletePlanFiles $params.DeletePlanFiles `
+                            -DeletePlanFiles $params.DeletePlanFiles `  // Ensure this line appears only once
                             -TerraformVersion $params.TerraformVersion `
                             -BackendStorageSubscriptionId $env:BACKEND_STORAGE_SUBSCRIPTION_ID `
                             -BackendStorageResourceGroupName $env:BACKEND_STORAGE_RESOURCE_GROUP_NAME `
                             -BackendStorageAccountName $env:BACKEND_STORAGE_ACCOUNT_NAME `
                             -BackendStorageAccountBlobContainerName $env:BACKEND_STORAGE_ACCOUNT_BLOB_CONTAINER_NAME `
                             -TerraformStateName $params.TerraformStateName
-                        """
+                            """
                 }
             }
         }
